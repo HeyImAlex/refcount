@@ -6,10 +6,7 @@ import (
     "sync/atomic"
 )
 
-var (
-    ErrDestroyed = errors.New("refcount: resource already destroyed")
-    ErrReleased  = errors.New("refcount: reference already released")
-)
+var ErrReleased = errors.New("refcount: reference already released")
 
 type Reference struct {
     count *int32
@@ -32,7 +29,7 @@ func (r *Reference) Clone() (*Reference, error) {
     }
     if atomic.AddInt32(r.count, 1) < 1 {
         atomic.StoreInt32(r.count, math.MinInt32)
-        return nil, ErrDestroyed
+        return nil, ErrReleased
     }
     return &Reference{
         count:      r.count, 
