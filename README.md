@@ -2,6 +2,14 @@
 
 Package refcount provides a way to model reference counting explicitly. All operations are safe for concurrent access and wait free.
 
+## Install
+
+```shell
+go get github.com/HeyImAlex/refcount
+```
+
+## Usage
+
 ```go
 // Create a new reference. The function passed in is a destructor that will run
 // once the refcount hits zero.
@@ -28,6 +36,8 @@ _, err = ref.Clone() // err == refcount.ErrReleased
 // Destructor will be called once all references have been released
 oneMoreRef.Release() // destructor called!
 ```
+
+## Guarantees
 
 - All operations are safe for concurrent access and wait free.
 - The destructor will only be called once, and only when there are no more live references.
