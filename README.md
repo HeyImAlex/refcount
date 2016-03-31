@@ -1,6 +1,6 @@
 # refcount
 
-Package refcount provides a way to model reference counting explicitly. All operations are safe for concurrent access and wait free.
+Reference counting package for go.
 
 ## Install
 
@@ -11,6 +11,8 @@ go get github.com/HeyImAlex/refcount
 ## Usage
 
 ```go
+import "github.com/HeyImAlex/refcount"
+
 // Create a new reference. The function passed in is a destructor that will run
 // once the refcount hits zero.
 ref := refcount.New(func() { fmt.Println("destructor called!") })
@@ -36,6 +38,10 @@ _, err = ref.Clone() // err == refcount.ErrReleased
 // Destructor will be called once all references have been released
 oneMoreRef.Release() // destructor called!
 ```
+
+## Motivation
+
+I wrote it for managing deletion of files stored in an lru cache; when a file is evicted from the cache, we don't want to remove it from disk until everyone using the file is done with it. This could be achieved with `runtime.SetFinalizer`, but I like how explicit references are and it was a lot of fun to write.
 
 ## Guarantees
 
