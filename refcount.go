@@ -9,32 +9,33 @@ import (
 var ErrReleased = errors.New("refcount: reference already released")
 
 type Reference struct {
-    count *int32
-    released int32
+    *resource
+    released uint32
+}
+
+type resource struct {
+    count      int32
     destructor func()
 }
 
 func New(destructor func()) *Reference {
-    count := new(int32)
-    *count = 1
     return &Reference{
-        count:      count, 
-        destructor: destructor,
+        resource: &resource{
+            count:      1,
+            destructor: destructor,
+        },
     }
 }
 
 func (r *Reference) Clone() (*Reference, error) {
-    if atomic.LoadInt32(&r.released) == 1 {
+    if atomic.LoadUint32(&r.released) == 1 {
         return nil, ErrReleased
     }
-    if atomic.AddInt32(r.count, 1) < 1 {
-        atomic.StoreInt32(r.count, math.MinInt32)
+    if atomic.AddInt32(&r.count, 1) < 1 {
+        atomic.StoreInt32(&r.count, math.MinInt32)
         return nil, ErrReleased
     }
-    return &Reference{
-        count:      r.count, 
-        destructor: r.destructor,
-    }, nil
+    return &Reference{ resource: r.resource }, nil
 }
 
 // Like Clone, but panics on error. Safe to use so long as you know a reference
@@ -48,11 +49,11 @@ func (r *Reference) MustClone() *Reference {
 }
 
 func (r *Reference) Release() error {
-    if !atomic.CompareAndSwapInt32(&r.released, 0, 1) {
+    if !atomic.CompareAndSwapUint32(&r.released, 0, 1) {
         return ErrReleased
     }
-    if atomic.AddInt32(r.count, -1) == 0 {
-        if atomic.CompareAndSwapInt32(r.count, 0, math.MinInt32) {
+    if atomic.AddInt32(&r.count, -1) == 0 {
+        if atomic.CompareAndSwapInt32(&r.count, 0, math.MinInt32) {
             if r.destructor != nil {
                 r.destructor()
             }
