@@ -5,13 +5,13 @@ Reference counting package for go.
 ## Install
 
 ```shell
-go get github.com/HeyImAlex/refcount
+go get github.com/heyimalex/refcount
 ```
 
 ## Usage
 
 ```go
-import "github.com/HeyImAlex/refcount"
+import "github.com/heyimalex/refcount"
 
 // Create a new reference. The function passed in is a destructor that will run
 // once the refcount hits zero.
